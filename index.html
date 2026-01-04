@@ -20,7 +20,7 @@
             overscroll-behavior-y: none;
         }
         
-        /* Header - 綠色系 & 置中純文字 */
+        /* Header */
         .header-banner {
             background: rgba(22, 101, 52, 0.95);
             backdrop-filter: blur(10px);
@@ -37,11 +37,8 @@
             font-size: 1.1rem;
             white-space: nowrap; 
         }
-        @media (max-width: 480px) {
-            .header-text { font-size: 0.85rem; }
-        }
 
-        /* UI 元件樣式 */
+        /* Glassmorphism Cards */
         .glass-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(16px);
@@ -68,7 +65,7 @@
             position: relative;
         }
 
-        /* 合約內容樣式 */
+        /* Contract Content */
         #contractPreview {
             max-height: 500px;
             overflow-y: auto;
@@ -78,9 +75,8 @@
             background: #f9fafb;
             font-size: 15px;
             line-height: 1.8;
+            white-space: pre-wrap; /* 保留換行 */
         }
-        #contractPreview img { max-width: 100%; height: auto; }
-        #contractPreview table { width: 100% !important; }
         
         .user-data-highlight {
             background-color: #fef08a; 
@@ -181,12 +177,7 @@
             </div>
             
             <div class="mb-8">
-                <div id="contractPreview">
-                    <div class="flex flex-col items-center justify-center h-40 text-gray-400">
-                        <i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i>
-                        <p>資料讀取中...</p>
-                    </div>
-                </div>
+                <div id="contractPreview"></div>
             </div>
 
             <hr class="border-gray-300 my-6">
@@ -212,12 +203,44 @@
     </div>
 
     <script>
-        // 設定後端 API (已幫您填入)
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXa8gNot0m3sJsVQ8qO4uYKBA0pbv8wTVz8XFEVialgpQPFtOitR60NvIPLdyUdjc/exec";
+        // ==========================================
+        // 1. 設定區域 (重要：請更新你的 URL)
+        // ==========================================
+        // 請將下方的 URL 換成你剛剛 GAS 部署後產生的「網頁應用程式網址」
+        const GOOGLE_SCRIPT_URL = "請將你的GAS網頁應用程式網址貼在這裡";
+
+        // 為了讓預覽順暢，我們將合約內容文字直接放在這裡 (你可以從你的 Word 檔複製貼上內容到引號內)
+        // 這裡我放了一個標準範本，你可以修改裡面的文字，保留 {{Name}} 這種格式即可
+        const CONTRACT_TEMPLATE = `
+立保密協議書人：
+甲方：卓遠教育顧問 (艾瑞克農地投資實戰班)
+乙方：{{Name}} (以下簡稱乙方)
+
+雙方因進行課程教學與交流，茲就機密資訊之保密事宜，同意訂立本協議書，並約定條款如下：
+
+第一條：定義
+本協議所稱之「機密資訊」，係指甲方於課程期間，以口頭、書面、電子檔案或其他方式提供予乙方之所有教材、講義、簡報、投資模型、數據分析方法及商業機密。
+
+第二條：保密義務
+1. 乙方同意對前條所定之機密資訊，負有嚴格保密義務，非經甲方書面同意，不得將其洩漏、交付或轉讓予任何第三人。
+2. 乙方不得將甲方之教材用於商業教學、公開販售或於網路上散佈。
+
+第三條：個人資料確認
+乙方確認以下資料無誤：
+- 身份證字號：{{ID}}
+- 聯絡電話：{{Phone}}
+- 電子信箱：{{Email}}
+- 通訊地址：{{Address}}
+
+第四條：違約責任
+若乙方違反本協議之約定，致甲方受有損害時，乙方應負損害賠償責任。
+
+立書人簽署：
+(請於下方簽名框簽署)
+        `;
 
         // ==========================================
-        // 初始化變數
-        let rawContractHTML = "";
+        // 2. 初始化變數
         const step1 = document.getElementById('step1');
         const step2 = document.getElementById('step2');
         const infoForm = document.getElementById('infoForm');
@@ -225,179 +248,4 @@
         const isOverseasCheckbox = document.getElementById('isOverseas');
         const loadingOverlay = document.getElementById('loadingOverlay');
         const loadingText = document.getElementById('loadingText');
-        const inputID = document.getElementById('inputID');
-
-        const canvas = document.getElementById('signatureCanvas');
-        const signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgba(255,255,255,0)', penColor: 'rgb(0,0,0)', minWidth: 1.5, maxWidth: 3.5 });
-
-        // 頁面載入
-        window.onload = function() {
-            if (typeof liff !== 'undefined') { liff.init({ liffId: "" }).catch(console.error); } 
-            resizeCanvas();
-            // 注意：這裡我們「不」自動抓取，改在使用者按下「下一步」時才抓
-            // 這樣可以避免一進來就 Loading 嚇到人，也可以確保使用者有填資料的意願
-        };
-
-        // ==========================================
-        // 核心功能：抓取合約 (Async Function)
-        function fetchContractContent() {
-            return new Promise((resolve, reject) => {
-                fetch(GOOGLE_SCRIPT_URL)
-                .then(res => res.json())
-                .then(data => {
-                    if(data.status === 'success') {
-                        rawContractHTML = data.content;
-                        resolve(data.content);
-                    } else {
-                        reject("Contract Load Failed");
-                    }
-                })
-                .catch(err => reject(err));
-            });
-        }
-
-        // ==========================================
-        // 表單送出 (Step 1 -> Step 2)
-        infoForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // 1. 欄位驗證
-            const name = document.getElementById('inputName').value.trim();
-            const idRaw = inputID.value.trim();
-            const id = isOverseasCheckbox.checked ? idRaw : idRaw.toUpperCase();
-            const phone = document.getElementById('inputPhone').value.trim();
-            const email = document.getElementById('inputEmail').value.trim();
-            const address = document.getElementById('inputAddress').value.trim();
-
-            if (!isOverseasCheckbox.checked) {
-                if (!validateID(id)) { document.getElementById('idError').classList.remove('hidden'); return; }
-                document.getElementById('idError').classList.add('hidden');
-            }
-            if (!/^09\d{8}$/.test(phone.replace(/-/g,''))) { document.getElementById('phoneError').classList.remove('hidden'); return; }
-            document.getElementById('phoneError').classList.add('hidden');
-
-            // 2. 如果還沒抓到合約，現在開始抓 (修正卡住的關鍵邏輯)
-            if(!rawContractHTML) {
-                // 顯示模糊提示
-                Swal.fire({
-                    title: '資料準備中',
-                    text: '系統處理中，請稍候...',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-
-                try {
-                    // 等待抓取完成
-                    await fetchContractContent();
-                    Swal.close(); // 抓完關閉 Loading
-                } catch (error) {
-                    Swal.fire({icon: 'error', title: '連線錯誤', text: '無法讀取合約內容，請檢查網路或重新整理。'});
-                    return; // 終止程式，不跳頁
-                }
-            }
-
-            // 3. 渲染合約內容 (前端替換)
-            let preview = rawContractHTML;
-            // 使用正則表達式全域替換
-            preview = preview.replace(/{{Name}}/g, `<span class="user-data-highlight">${name}</span>`);
-            preview = preview.replace(/{{ID}}/g, `<span class="user-data-highlight">${id}</span>`);
-            preview = preview.replace(/{{Phone}}/g, `<span class="user-data-highlight">${phone}</span>`);
-            preview = preview.replace(/{{Email}}/g, `<span class="user-data-highlight">${email}</span>`);
-            preview = preview.replace(/{{Address}}/g, `<span class="user-data-highlight">${address}</span>`);
-            
-            // 移除 Doc 裡的簽名標記，前端這邊不需要顯示
-            preview = preview.replace(/{{Signature}}/g, "");
-
-            document.getElementById('contractPreview').innerHTML = preview;
-
-            // 4. 切換頁面
-            step1.classList.add('hidden-step');
-            step2.classList.remove('hidden-step');
-            step2.classList.add('fade-in');
-            setTimeout(resizeCanvas, 50);
-            window.scrollTo(0,0);
-        });
-
-        // ==========================================
-        // 最終簽署送出
-        document.getElementById('finalSubmitBtn').addEventListener('click', async () => {
-            if (signaturePad.isEmpty()) { Swal.fire({icon:'warning', title:'尚未簽名', confirmButtonColor:'#166534'}); return; }
-
-            loadingText.textContent = "正在製作合約並加密傳輸...";
-            loadingOverlay.style.display = 'flex';
-
-            const formData = {
-                name: document.getElementById('inputName').value.trim(),
-                id: document.getElementById('inputID').value.toUpperCase(),
-                phone: document.getElementById('inputPhone').value.trim(),
-                email: document.getElementById('inputEmail').value.trim(),
-                address: document.getElementById('inputAddress').value.trim(),
-                signature_base64: signaturePad.toDataURL("image/png")
-            };
-
-            try {
-                const res = await fetch(GOOGLE_SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(formData)
-                });
-                const result = await res.json();
-                
-                loadingOverlay.style.display = 'none';
-                if (result.status === 'success') {
-                    Swal.fire({
-                        icon: 'success', title: '簽署完成',
-                        html: `合約副本已寄至 ${formData.email}`,
-                        confirmButtonColor: '#166534', allowOutsideClick: false
-                    }).then(() => location.reload());
-                } else { throw new Error(result.message); }
-            } catch (error) {
-                loadingOverlay.style.display = 'none';
-                Swal.fire({icon:'error', title:'發生錯誤', text: error.toString(), confirmButtonColor:'#ef4444'});
-            }
-        });
-
-        // ==========================================
-        // 輔助函式
-        backBtn.addEventListener('click', () => { step2.classList.add('hidden-step'); step1.classList.remove('hidden-step'); step1.classList.add('fade-in'); });
-        document.getElementById('clearBtn').addEventListener('click', () => signaturePad.clear());
-        
-        isOverseasCheckbox.addEventListener('change', (e) => {
-            inputID.value = '';
-            document.getElementById('idError').classList.add('hidden');
-            if (e.target.checked) {
-                inputID.placeholder = "請輸入護照或其他證件號碼";
-                inputID.classList.remove('uppercase'); inputID.removeAttribute('maxlength');
-            } else {
-                inputID.placeholder = "A123456789";
-                inputID.classList.add('uppercase'); inputID.setAttribute('maxlength', '10');
-            }
-        });
-
-        document.getElementById('inputPhone').addEventListener('input', (e) => {
-            let val = e.target.value.replace(/\D/g, '');
-            if (val.length > 10) val = val.slice(0, 10);
-            e.target.value = val; 
-        });
-
-        function resizeCanvas() {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            if (canvas.offsetWidth === 0) return;
-            const data = signaturePad.toData();
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
-            canvas.getContext("2d").scale(ratio, ratio);
-            signaturePad.clear(); signaturePad.fromData(data);
-        }
-        window.addEventListener("resize", resizeCanvas);
-
-        function validateID(id) {
-            if (!/^[A-Z][1-2]\d{8}$/.test(id)) return false;
-            const map = {A:10,B:11,C:12,D:13,E:14,F:15,G:16,H:17,J:18,K:19,L:20,M:21,N:22,P:23,Q:24,R:25,S:26,T:27,U:28,V:29,X:30,Y:31,W:32,Z:33,I:34,O:35};
-            const n = map[id[0]], x1 = Math.floor(n/10), x2 = n%10, d = id.slice(1).split('').map(Number);
-            let sum = x1 + x2*9;
-            for(let i=0;i<8;i++) sum += d[i]*[8,7,6,5,4,3,2,1][i];
-            return (sum + d[8]) % 10 === 0;
-        }
-    </script>
-</body>
-</html>
+        const inputID

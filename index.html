@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>課程協議簽署 | 艾瑞克農地投資實戰班</title>
+    <title>艾瑞克農地投資實戰班 | 卓遠教育顧問</title>
+    <!-- 引入必要的外部資源 -->
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -12,120 +13,154 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        /* 農地綠主題設定 */
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background: #0f172a; 
+            background: #051F05; /* 深農林綠背景 */
             min-height: 100vh;
             overflow-x: hidden;
             overscroll-behavior-y: none;
         }
         
-        /* Header */
+        /* Header 樣式 */
         .header-banner {
-            background: rgba(22, 101, 52, 0.95);
+            background: rgba(10, 40, 10, 0.95); /* 深綠色 Header */
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-            display: flex; align-items: center; 
-            justify-content: center; 
-            padding: 0.8rem 1rem;
+            border-bottom: 1px solid rgba(76, 175, 80, 0.3); /* 綠色邊框 */
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; /* 文字靠右 */
+            padding: 0.75rem 1rem;
         }
         .header-text {
-            color: white; 
-            font-weight: 700; 
-            letter-spacing: 0.05em; 
-            font-size: 1.1rem;
-            white-space: nowrap; 
+            color: #E8F5E9; /* 淺綠白色 */
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            font-size: 1rem;
+            white-space: nowrap;
         }
 
-        /* Glassmorphism Cards */
+        /* 玻璃擬態卡片 */
         .glass-card {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.2);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }
         .glass-input {
             background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white; transition: all 0.3s ease;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            color: #E8F5E9;
+            transition: all 0.3s ease;
         }
         .glass-input:focus {
             background: rgba(0, 0, 0, 0.5);
-            border-color: #22c55e;
+            border-color: #4CAF50;
             outline: none;
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
+            box-shadow: 0 0 15px rgba(76, 175, 80, 0.3);
         }
-        .custom-checkbox { accent-color: #22c55e; }
+        
+        /* Checkbox 樣式 */
+        .custom-checkbox {
+            accent-color: #2E7D32;
+        }
 
+        /* 紙張質感 (Step 2) */
         .paper-ui {
-            background-color: #ffffff; color: #111827;
+            background-color: #fdfdfd;
+            color: #111827;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
             position: relative;
         }
-
-        /* Contract Content */
-        #contractPreview {
-            max-height: 500px;
-            overflow-y: auto;
-            border: 1px solid #e5e7eb;
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            background: #f9fafb;
-            font-size: 15px;
-            line-height: 1.8;
-            white-space: pre-wrap; /* 保留換行 */
-        }
         
-        .user-data-highlight {
-            background-color: #fef08a; 
-            color: #854d0e;
-            padding: 0 4px; border-radius: 2px;
-            font-weight: bold; text-decoration: underline;
+        /* 地址輸入底線 */
+        .inline-input {
+            border: none;
+            border-bottom: 2px solid #374151;
+            background: transparent;
+            color: #111827;
+            padding: 0 5px;
+            font-weight: bold;
+            text-align: left;
+            outline: none;
+            transition: border-color 0.3s;
+            border-radius: 0;
+            width: 100%;
+        }
+        .inline-input:focus {
+            border-bottom-color: #2E7D32;
+            background-color: rgba(46, 125, 50, 0.05);
         }
 
-        /* Loading Overlay */
+        /* Loading 動畫 */
         .loading-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.85); z-index: 100;
-            display: none; flex-direction: column; justify-content: center; align-items: center;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5, 31, 5, 0.9);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             backdrop-filter: blur(5px);
         }
         .loader {
             width: 48px; height: 48px;
-            border: 5px solid #FFF; border-bottom-color: #22c55e;
-            border-radius: 50%; display: inline-block;
+            border: 5px solid #E8F5E9;
+            border-bottom-color: #4CAF50;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
             animation: rotation 1s linear infinite;
         }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 預覽文字區塊 (保留換行) */
+        .doc-preview-content {
+            white-space: pre-wrap; /* 關鍵：保留 Google Doc 的換行 */
+            font-family: 'Noto Serif TC', serif; /* 模擬合約字體 */
+            line-height: 1.8;
+            font-size: 0.95rem;
+            text-align: justify;
+        }
 
         .hidden-step { display: none; opacity: 0; }
         .fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .main-container { padding-top: 80px; }
     </style>
 </head>
 <body class="flex items-center justify-center p-4">
 
+    <!-- Header -->
     <div class="header-banner">
         <span class="header-text">艾瑞克農地投資實戰班 | 卓遠教育顧問</span>
     </div>
 
+    <!-- Loading 遮罩 -->
     <div id="loadingOverlay" class="loading-overlay">
         <span class="loader mb-4"></span>
-        <p class="text-white text-lg tracking-widest font-light" id="loadingText">正在處理中...</p>
+        <p id="loadingText" class="text-green-100 text-lg tracking-widest font-light">正在讀取合約內容...</p>
     </div>
 
     <div class="w-full max-w-3xl relative main-container">
         
+        <!-- Step 1: 資料填寫 -->
         <div id="step1" class="glass-card rounded-2xl p-8 md:p-10 fade-in">
             <div class="text-center mb-8">
-                <h1 class="text-3xl font-bold text-white mb-2 tracking-wide">保密協議簽署</h1>
-                <p class="text-green-200 text-sm">Step 1 / 2 : 請填寫基本資料</p>
+                <h1 class="text-3xl font-bold text-green-100 mb-2 tracking-wide">農地投資協議簽署</h1>
+                <p class="text-green-300 text-sm">Step 1 / 2 : 請填寫基本資料</p>
             </div>
-            
             <form id="infoForm" class="space-y-6">
                 <div>
                     <label class="block text-green-200 text-sm mb-2">姓名 (Name)</label>
@@ -136,7 +171,7 @@
                     <div class="flex flex-wrap justify-between items-end mb-2 gap-y-1">
                         <label class="block text-green-200 text-sm">身分證字號 (ID Number)</label>
                         <label class="flex items-center text-green-300 text-xs cursor-pointer hover:text-green-100 transition whitespace-nowrap">
-                            <input type="checkbox" id="isOverseas" class="custom-checkbox mr-2 w-4 h-4 rounded border-gray-500 bg-gray-700 focus:ring-offset-gray-800 focus:ring-2">
+                            <input type="checkbox" id="isOverseas" class="custom-checkbox mr-2 w-4 h-4 rounded border-gray-500 bg-gray-700">
                             海外人士 (無台灣身分證)
                         </label>
                     </div>
@@ -149,15 +184,10 @@
                     <input type="tel" id="inputPhone" maxlength="12" required class="glass-input w-full px-4 py-3 rounded-lg text-lg" placeholder="09xx-xxx-xxx">
                     <p id="phoneError" class="text-red-400 text-xs mt-1 hidden"><i class="fas fa-exclamation-circle"></i> 請輸入正確的手機號碼</p>
                 </div>
-
+                
                 <div>
                     <label class="block text-green-200 text-sm mb-2">電子信箱 (Email)</label>
-                    <input type="email" id="inputEmail" required class="glass-input w-full px-4 py-3 rounded-lg text-lg" placeholder="example@gmail.com">
-                </div>
-
-                <div>
-                    <label class="block text-green-200 text-sm mb-2">通訊地址 (Address)</label>
-                    <input type="text" id="inputAddress" required class="glass-input w-full px-4 py-3 rounded-lg text-lg" placeholder="請輸入通訊地址">
+                    <input type="email" id="inputEmail" required class="glass-input w-full px-4 py-3 rounded-lg text-lg" placeholder="example@email.com">
                 </div>
 
                 <button type="submit" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-4 rounded-lg shadow-lg transform transition hover:-translate-y-1 hover:shadow-green-500/50 mt-4">
@@ -166,86 +196,241 @@
             </form>
         </div>
 
+        <!-- Step 2: 合約預覽與簽署 -->
         <div id="step2" class="hidden-step paper-ui rounded-sm p-8 md:p-12">
-            <button id="backBtn" class="absolute top-4 left-4 text-gray-400 hover:text-gray-700 transition font-bold text-sm">
-                <i class="fas fa-arrow-left"></i> 修改資料
-            </button>
+            <button id="backBtn" class="absolute top-4 left-4 text-gray-400 hover:text-gray-700 transition"><i class="fas fa-arrow-left"></i> 修改資料</button>
             
-            <div class="text-center mb-6 mt-6">
-                <h2 class="text-2xl font-serif font-bold text-gray-900 mb-2 border-b-2 border-black inline-block pb-1">課程保密協議書</h2>
-                <p class="text-sm text-gray-500">請詳閱下方條款，您的資料已自動帶入</p>
+            <div class="text-center mb-10 mt-6">
+                <h2 class="text-3xl font-serif font-bold text-gray-900 mb-2 border-b-2 border-green-800 inline-block pb-1">協議書內容確認</h2>
             </div>
             
-            <div class="mb-8">
-                <div id="contractPreview"></div>
+            <!-- 動態合約內容區 -->
+            <div id="contractContent" class="doc-preview-content mb-10">
+                <!-- 這裡的內容會由 JS 從 Google Doc 抓取後填入 -->
             </div>
 
             <hr class="border-gray-300 my-6">
 
-            <div class="mt-6">
-                <label class="block text-sm font-bold text-gray-900 mb-2">立書人簽名 (Signature)： <span class="text-red-500">*</span></label>
-                <div class="relative w-full h-64 border-2 border-dashed border-gray-400 bg-gray-50 hover:bg-white transition-colors rounded-lg">
-                    <canvas id="signatureCanvas" class="w-full h-full block"></canvas>
-                    <button type="button" id="clearBtn" class="absolute top-2 right-2 bg-gray-200 text-gray-600 px-3 py-1 rounded text-xs hover:bg-gray-300">
-                        <i class="fas fa-eraser"></i> 清除
-                    </button>
-                    <div class="absolute bottom-2 right-4 text-gray-300 pointer-events-none select-none text-4xl opacity-20 font-serif italic">Sign Here</div>
+            <!-- 地址填寫與簽名區 -->
+            <div class="flex flex-col gap-6">
+                <div class="w-full">
+                    <label class="block text-gray-700 mb-2 font-bold">通訊地址 / 農地地號 (Address)：</label>
+                    <input type="text" id="addressInput" class="inline-input text-lg py-2" placeholder="請在此輸入您的通訊地址或相關地號...">
                 </div>
-                <p class="text-xs text-gray-400 mt-1 text-center">(請於上方虛線框內簽名，支援手機觸控)</p>
-            </div>
 
-            <div class="mt-10">
-                <button id="finalSubmitBtn" class="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-lg shadow-xl text-lg transition-all active:scale-[0.98]">
-                    同意協議並完成簽署 <i class="fas fa-file-signature ml-2"></i>
-                </button>
+                <div class="mt-8">
+                    <label class="block text-sm font-bold text-gray-900 mb-2">簽名 (Signature)： <span class="text-red-500">*</span></label>
+                    <div class="relative w-full h-64 border-2 border-dashed border-gray-400 bg-gray-50 hover:bg-white transition-colors rounded-lg">
+                        <canvas id="signatureCanvas" class="w-full h-full block"></canvas>
+                        <button type="button" id="clearBtn" class="absolute top-2 right-2 bg-gray-200 text-gray-600 px-3 py-1 rounded text-xs"><i class="fas fa-eraser"></i> 清除</button>
+                        <div class="absolute bottom-2 right-4 text-green-800 pointer-events-none select-none text-4xl opacity-10 font-serif italic">Sign Here</div>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <button id="finalSubmitBtn" class="w-full bg-green-900 hover:bg-black text-white font-bold py-4 rounded-lg shadow-xl text-lg transition-all active:scale-[0.98]">
+                        同意協議並完成簽署 <i class="fas fa-file-signature ml-2"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ==========================================
-        // 1. 設定區域 (重要：請更新你的 URL)
-        // ==========================================
-        // 請將下方的 URL 換成你剛剛 GAS 部署後產生的「網頁應用程式網址」
-        const GOOGLE_SCRIPT_URL = "請將你的GAS網頁應用程式網址貼在這裡";
+        // 設定後端 API (使用你提供的最新網址)
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXa8gNot0m3sJsVQ8qO4uYKBA0pbv8wTVz8XFEVialgpQPFtOitR60NvIPLdyUdjc/exec";
+        
+        // 用戶填寫的暫存資料
+        let userData = {};
 
-        // 為了讓預覽順暢，我們將合約內容文字直接放在這裡 (你可以從你的 Word 檔複製貼上內容到引號內)
-        // 這裡我放了一個標準範本，你可以修改裡面的文字，保留 {{Name}} 這種格式即可
-        const CONTRACT_TEMPLATE = `
-立保密協議書人：
-甲方：卓遠教育顧問 (艾瑞克農地投資實戰班)
-乙方：{{Name}} (以下簡稱乙方)
+        // 初始化
+        window.onload = function() {
+            // 如有 LIFF 邏輯可在此保留，目前專注於 Web
+        };
 
-雙方因進行課程教學與交流，茲就機密資訊之保密事宜，同意訂立本協議書，並約定條款如下：
-
-第一條：定義
-本協議所稱之「機密資訊」，係指甲方於課程期間，以口頭、書面、電子檔案或其他方式提供予乙方之所有教材、講義、簡報、投資模型、數據分析方法及商業機密。
-
-第二條：保密義務
-1. 乙方同意對前條所定之機密資訊，負有嚴格保密義務，非經甲方書面同意，不得將其洩漏、交付或轉讓予任何第三人。
-2. 乙方不得將甲方之教材用於商業教學、公開販售或於網路上散佈。
-
-第三條：個人資料確認
-乙方確認以下資料無誤：
-- 身份證字號：{{ID}}
-- 聯絡電話：{{Phone}}
-- 電子信箱：{{Email}}
-- 通訊地址：{{Address}}
-
-第四條：違約責任
-若乙方違反本協議之約定，致甲方受有損害時，乙方應負損害賠償責任。
-
-立書人簽署：
-(請於下方簽名框簽署)
-        `;
-
-        // ==========================================
-        // 2. 初始化變數
+        // DOM 元素
         const step1 = document.getElementById('step1');
         const step2 = document.getElementById('step2');
         const infoForm = document.getElementById('infoForm');
         const backBtn = document.getElementById('backBtn');
-        const isOverseasCheckbox = document.getElementById('isOverseas');
+        const addressInput = document.getElementById('addressInput');
+        const finalSubmitBtn = document.getElementById('finalSubmitBtn');
+        const contractContentDiv = document.getElementById('contractContent');
         const loadingOverlay = document.getElementById('loadingOverlay');
         const loadingText = document.getElementById('loadingText');
-        const inputID
+        
+        // 簽名板設定
+        const canvas = document.getElementById('signatureCanvas');
+        const signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgba(255,255,255,0)', penColor: 'rgb(0,0,0)', minWidth: 1.5, maxWidth: 3.5 });
+
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            if (canvas.offsetWidth === 0) return;
+            const data = signaturePad.toData();
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            signaturePad.clear();
+            signaturePad.fromData(data);
+        }
+        window.addEventListener("resize", resizeCanvas);
+
+        // 身分證驗證邏輯
+        const isOverseasCheckbox = document.getElementById('isOverseas');
+        const inputID = document.getElementById('inputID');
+
+        isOverseasCheckbox.addEventListener('change', (e) => {
+            inputID.value = '';
+            document.getElementById('idError').classList.add('hidden');
+            if (e.target.checked) {
+                inputID.placeholder = "請輸入護照或其他證件號碼";
+                inputID.classList.remove('uppercase'); 
+                inputID.removeAttribute('maxlength');   
+            } else {
+                inputID.placeholder = "A123456789";
+                inputID.classList.add('uppercase');    
+                inputID.setAttribute('maxlength', '10'); 
+            }
+        });
+
+        function validateID(id) {
+            if (!/^[A-Z][1-2]\d{8}$/.test(id)) return false;
+            const map = {A:10,B:11,C:12,D:13,E:14,F:15,G:16,H:17,J:18,K:19,L:20,M:21,N:22,P:23,Q:24,R:25,S:26,T:27,U:28,V:29,X:30,Y:31,W:32,Z:33,I:34,O:35};
+            const n = map[id[0]], x1 = Math.floor(n/10), x2 = n%10, d = id.slice(1).split('').map(Number);
+            let sum = x1 + x2*9;
+            for(let i=0;i<8;i++) sum += d[i]*[8,7,6,5,4,3,2,1][i];
+            return (sum + d[8]) % 10 === 0;
+        }
+
+        // 手機格式化
+        document.getElementById('inputPhone').addEventListener('input', (e) => {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 10) val = val.slice(0, 10);
+            e.target.value = val.length > 7 ? val.slice(0,4)+'-'+val.slice(4,7)+'-'+val.slice(7) : (val.length > 4 ? val.slice(0,4)+'-'+val.slice(4) : val);
+        });
+
+        // Step 1 提交 -> 抓取合約內容 -> 顯示 Step 2
+        infoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // 1. 驗證資料
+            const name = document.getElementById('inputName').value.trim();
+            const idRaw = document.getElementById('inputID').value.trim();
+            const id = isOverseasCheckbox.checked ? idRaw : idRaw.toUpperCase();
+            const phone = document.getElementById('inputPhone').value.trim();
+            const email = document.getElementById('inputEmail').value.trim();
+
+            if (!isOverseasCheckbox.checked && !validateID(id)) { 
+                document.getElementById('idError').classList.remove('hidden'); return; 
+            }
+            if (!/^09\d{8}$/.test(phone.replace(/-/g,''))) { 
+                document.getElementById('phoneError').classList.remove('hidden'); return; 
+            }
+
+            // 2. 儲存資料到全域變數
+            userData = { name, id, phone, email };
+
+            // 3. 開啟 Loading，準備抓取合約
+            loadingText.textContent = "正在讀取合約內容...";
+            loadingOverlay.style.display = 'flex';
+
+            try {
+                // 4. 呼叫 GAS 取得合約文字
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getContent' })
+                });
+                const data = await res.json();
+
+                if (data.status !== 'success') throw new Error('無法讀取合約內容');
+
+                // 5. 前端替換標籤 (確保預覽時就看到自己的名字)
+                let content = data.content;
+                // 支援中文與英文標籤，確保萬無一失
+                content = content
+                    .replace(/{{name}}/g, name).replace(/{{姓名}}/g, name)
+                    .replace(/{{id}}/g, id).replace(/{{身分證}}/g, id)
+                    .replace(/{{phone}}/g, phone).replace(/{{電話}}/g, phone)
+                    .replace(/{{email}}/g, email).replace(/{{信箱}}/g, email)
+                    .replace(/{{address}}/g, "__________") // 預覽時地址尚未填寫
+                    .replace(/{{signature}}/g, "(請於下方簽署)");
+
+                // 6. 渲染到畫面上
+                contractContentDiv.textContent = content;
+
+                // 7. 切換頁面
+                step1.classList.add('hidden-step');
+                step2.classList.remove('hidden-step');
+                step2.classList.add('fade-in');
+                setTimeout(resizeCanvas, 50);
+                window.scrollTo(0,0);
+
+            } catch (error) {
+                Swal.fire({icon:'error', title:'連線錯誤', text:'無法取得合約範本，請檢查網路或稍後再試。', confirmButtonColor:'#2E7D32'});
+                console.error(error);
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        });
+
+        // 返回修改
+        backBtn.addEventListener('click', () => { 
+            step2.classList.add('hidden-step'); 
+            step1.classList.remove('hidden-step'); 
+            step1.classList.add('fade-in'); 
+        });
+        
+        document.getElementById('clearBtn').addEventListener('click', () => signaturePad.clear());
+
+        // 最終提交 (Step 2)
+        finalSubmitBtn.addEventListener('click', async () => {
+            const address = addressInput.value.trim();
+            if (address === "") { 
+                Swal.fire({icon:'warning', title:'請填寫地址', confirmButtonColor:'#2E7D32'}); 
+                addressInput.focus(); return; 
+            }
+            if (signaturePad.isEmpty()) { 
+                Swal.fire({icon:'warning', title:'尚未簽名', confirmButtonColor:'#2E7D32'}); 
+                return; 
+            }
+
+            loadingText.textContent = "正在加密簽署並傳送...";
+            loadingOverlay.style.display = 'flex';
+
+            // 合併所有資料
+            const submitData = {
+                action: 'submit', // 告訴後端這是提交動作
+                ...userData,      // name, id, phone, email
+                address: address,
+                signature_base64: signaturePad.toDataURL("image/png")
+            };
+
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(submitData)
+                });
+                const result = await res.json();
+                
+                if (result.status === 'success') {
+                    Swal.fire({
+                        icon: 'success', 
+                        title: '簽署成功', 
+                        html: `合約副本已寄至 ${userData.email}`, 
+                        confirmButtonColor: '#2E7D32', 
+                        allowOutsideClick: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else { 
+                    throw new Error(result.message); 
+                }
+            } catch (error) {
+                Swal.fire({icon:'error', title:'發生錯誤', text: error.toString(), confirmButtonColor:'#d32f2f'});
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

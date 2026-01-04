@@ -302,6 +302,7 @@
                     .replace(/\{\{\s*sign_month\s*\}\}/g, month)
                     .replace(/\{\{\s*sign_day\s*\}\}/g, day);
 
+               // 2. 暴力美化排版
                 const lines = content.split('\n');
                 let styledHtml = '';
 
@@ -309,18 +310,17 @@
                     const trimLine = line.trim();
                     if (!trimLine) {
                         styledHtml += '<br>'; 
-                    } else if (trimLine.includes('協議書') && trimLine.length < 30) {
+                    // 👇 修改處：只要包含「協議」兩個字 (不一定要有書)，且長度適中，就變大標題
+                    } else if (trimLine.includes('協議') && trimLine.length < 40) {
                         styledHtml += `<h1 class="text-3xl font-bold text-center text-gray-900 my-8 border-b-2 border-green-800 pb-2 inline-block">${trimLine}</h1><div class="w-full"></div>`;
                     } else if (trimLine.startsWith('第') && trimLine.includes('條')) {
                         styledHtml += `<h3 class="text-xl font-bold text-gray-900 mt-8 mb-3 border-l-4 border-green-700 pl-3 bg-green-50 py-1">${trimLine}</h3>`;
-                    // 修正點：放寬檢查，只要開頭是甲方或乙方，一律變大變粗體
                     } else if (trimLine.includes('立書人') || trimLine.includes('定義') || trimLine.startsWith('甲方') || trimLine.startsWith('乙方')) {
                         styledHtml += `<h4 class="text-xl font-bold text-gray-800 mt-6 mb-2">${trimLine}</h4>`;
                     } else {
                         styledHtml += `<p class="mb-2 leading-relaxed text-gray-700 text-justify">${trimLine}</p>`;
                     }
                 });
-
                 contractContentDiv.innerHTML = styledHtml;
 
                 step1.classList.add('hidden-step');

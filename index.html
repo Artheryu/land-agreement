@@ -100,7 +100,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        /* 預覽區：這裡移除 white-space: pre-wrap，改由 JS 生成 HTML 標籤 */
         .doc-preview-content {
             font-family: 'Noto Serif TC', serif;
             font-size: 0.95rem;
@@ -256,7 +255,6 @@
             e.target.value = val.length > 7 ? val.slice(0,4)+'-'+val.slice(4,7)+'-'+val.slice(7) : (val.length > 4 ? val.slice(0,4)+'-'+val.slice(4) : val);
         });
 
-        // 核心邏輯：提交 -> 抓取 -> 美化排版
         infoForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -292,7 +290,7 @@
 
                 if (data.status !== 'success') throw new Error('無法讀取合約內容');
 
-                // 1. 替換標籤
+                // 1. 強力標籤替換 (使用 Regex 處理空格與格式)
                 let content = data.content;
                 content = content
                     .replace(/{{name}}/g, name).replace(/{{姓名}}/g, name)
@@ -301,11 +299,12 @@
                     .replace(/{{email}}/g, email).replace(/{{信箱}}/g, email)
                     .replace(/{{address}}/g, "__________")
                     .replace(/{{signature}}/g, "(請於下方簽署)")
-                    .replace(/{{sign_year}}/g, rocYear)
-                    .replace(/{{sign_month}}/g, month)
-                    .replace(/{{sign_day}}/g, day);
+                    // 修正：針對日期的 Regex，允許括號內有空格或不同格式
+                    .replace(/\{\{\s*sign_year\s*\}\}/g, rocYear)
+                    .replace(/\{\{\s*sign_month\s*\}\}/g, month)
+                    .replace(/\{\{\s*sign_day\s*\}\}/g, day);
 
-                // 2. 智慧排版 (將純文字轉為美觀 HTML)
+                // 2. 暴力美化排版
                 const lines = content.split('\n');
                 let styledHtml = '';
 
@@ -313,15 +312,18 @@
                     const trimLine = line.trim();
                     if (!trimLine) {
                         styledHtml += '<br>'; 
-                    } else if (trimLine.includes('協議書內容確認') || trimLine.includes('農地投資實戰班課程協議')) {
-                        // 標題
+                    } else if (trimLine.includes('協議書') && trimLine.length < 30) {
+                        // 針對標題：只要有協議書三個字，且長度不長，就當作大標題
                         styledHtml += `<h1 class="text-3xl font-bold text-center text-gray-900 my-8 border-b-2 border-green-800 pb-2 inline-block">${trimLine}</h1><div class="w-full"></div>`;
-                    } else if (trimLine.match(/^第[一二三四五六七八九十]+條/) || trimLine.includes('立書人：') || trimLine.includes('定義：') || trimLine.includes('甲方：') || trimLine.includes('乙方：')) {
-                        // 中標題
-                        styledHtml += `<h3 class="text-xl font-bold text-gray-800 mt-6 mb-2">${trimLine}</h3>`;
+                    } else if (trimLine.startsWith('第') && trimLine.includes('條')) {
+                        // 針對條款：只要開頭是「第」且中間有「條」，變大變粗
+                        styledHtml += `<h3 class="text-xl font-bold text-gray-900 mt-8 mb-3 border-l-4 border-green-700 pl-3 bg-green-50 py-1">${trimLine}</h3>`;
+                    } else if (trimLine.includes('立書人：') || trimLine.includes('定義：') || trimLine.includes('甲方：') || trimLine.includes('乙方：')) {
+                        // 針對小標
+                        styledHtml += `<h4 class="text-lg font-bold text-gray-800 mt-4 mb-1">${trimLine}</h4>`;
                     } else {
                         // 內文
-                        styledHtml += `<p class="mb-2 leading-relaxed text-gray-700">${trimLine}</p>`;
+                        styledHtml += `<p class="mb-2 leading-relaxed text-gray-700 text-justify">${trimLine}</p>`;
                     }
                 });
 

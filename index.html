@@ -14,20 +14,20 @@
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background: #0f172a; /* 維持深色背景，對比綠色更清晰 */
+            background: #0f172a; 
             min-height: 100vh;
             overflow-x: hidden;
             overscroll-behavior-y: none;
         }
         
-        /* Header 樣式 - 改為深綠色系 & 置中對齊 (無 Logo 版) */
+        /* Header - 綠色系 & 置中純文字 */
         .header-banner {
-            background: rgba(22, 101, 52, 0.95); /* 深綠色 */
+            background: rgba(22, 101, 52, 0.95);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             position: fixed; top: 0; left: 0; right: 0; z-index: 50;
             display: flex; align-items: center; 
-            justify-content: center; /* 靠中對齊 */
+            justify-content: center; 
             padding: 0.8rem 1rem;
         }
         .header-text {
@@ -35,14 +35,13 @@
             font-weight: 700; 
             letter-spacing: 0.05em; 
             font-size: 1.1rem;
-            white-space: nowrap; /* 手機版防掉字 */
+            white-space: nowrap; 
         }
-        /* 手機版字體微調 */
         @media (max-width: 480px) {
             .header-text { font-size: 0.85rem; }
         }
 
-        /* 玻璃擬態卡片 */
+        /* UI 元件樣式 */
         .glass-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(16px);
@@ -50,8 +49,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }
-        
-        /* 輸入框樣式 - Focus 時改為綠色光暈 */
         .glass-input {
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -59,20 +56,19 @@
         }
         .glass-input:focus {
             background: rgba(0, 0, 0, 0.5);
-            border-color: #22c55e; /* 改為綠色 */
+            border-color: #22c55e;
             outline: none;
             box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
         }
         .custom-checkbox { accent-color: #22c55e; }
 
-        /* 紙張質感 (Step 2) */
         .paper-ui {
             background-color: #ffffff; color: #111827;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
             position: relative;
         }
 
-        /* 動態抓取的合約預覽區 */
+        /* 合約內容樣式 */
         #contractPreview {
             max-height: 500px;
             overflow-y: auto;
@@ -83,11 +79,9 @@
             font-size: 15px;
             line-height: 1.8;
         }
-        /* 讓 Google Doc 匯出的內容不要超出邊界 */
         #contractPreview img { max-width: 100%; height: auto; }
         #contractPreview table { width: 100% !important; }
         
-        /* 自動填入的高亮文字 */
         .user-data-highlight {
             background-color: #fef08a; 
             color: #854d0e;
@@ -95,7 +89,7 @@
             font-weight: bold; text-decoration: underline;
         }
 
-        /* Loading 動畫 - 改為綠色 */
+        /* Loading Overlay */
         .loading-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0, 0, 0, 0.85); z-index: 100;
@@ -110,7 +104,6 @@
         }
         @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 動畫 */
         .hidden-step { display: none; opacity: 0; }
         .fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -191,7 +184,7 @@
                 <div id="contractPreview">
                     <div class="flex flex-col items-center justify-center h-40 text-gray-400">
                         <i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i>
-                        <p>正在載入合約內容...</p>
+                        <p>資料讀取中...</p>
                     </div>
                 </div>
             </div>
@@ -216,15 +209,14 @@
                 </button>
             </div>
         </div>
-
     </div>
 
     <script>
-        // 設定後端 API (已更新)
+        // 設定後端 API (已幫您填入)
         const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXa8gNot0m3sJsVQ8qO4uYKBA0pbv8wTVz8XFEVialgpQPFtOitR60NvIPLdyUdjc/exec";
 
         // ==========================================
-        // 變數與初始化
+        // 初始化變數
         let rawContractHTML = "";
         const step1 = document.getElementById('step1');
         const step2 = document.getElementById('step2');
@@ -235,36 +227,41 @@
         const loadingText = document.getElementById('loadingText');
         const inputID = document.getElementById('inputID');
 
-        // 簽名板
         const canvas = document.getElementById('signatureCanvas');
         const signaturePad = new SignaturePad(canvas, { backgroundColor: 'rgba(255,255,255,0)', penColor: 'rgb(0,0,0)', minWidth: 1.5, maxWidth: 3.5 });
 
-        // 初始化
+        // 頁面載入
         window.onload = function() {
             if (typeof liff !== 'undefined') { liff.init({ liffId: "" }).catch(console.error); } 
             resizeCanvas();
-            fetchContractContent(); // 預先載入合約
+            // 注意：這裡我們「不」自動抓取，改在使用者按下「下一步」時才抓
+            // 這樣可以避免一進來就 Loading 嚇到人，也可以確保使用者有填資料的意願
         };
 
-        // 1. 從 GAS 抓取合約 HTML
+        // ==========================================
+        // 核心功能：抓取合約 (Async Function)
         function fetchContractContent() {
-            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes("請貼上")) return;
-            fetch(GOOGLE_SCRIPT_URL)
-            .then(res => res.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    rawContractHTML = data.content;
-                    console.log("合約載入成功");
-                } else {
-                    document.getElementById('contractPreview').innerHTML = '<p class="text-red-500">合約內容讀取失敗</p>';
-                }
-            })
-            .catch(err => console.error("Fetch Error:", err));
+            return new Promise((resolve, reject) => {
+                fetch(GOOGLE_SCRIPT_URL)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.status === 'success') {
+                        rawContractHTML = data.content;
+                        resolve(data.content);
+                    } else {
+                        reject("Contract Load Failed");
+                    }
+                })
+                .catch(err => reject(err));
+            });
         }
 
-        // 2. 表單送出 (Step 1 -> Step 2)
-        infoForm.addEventListener('submit', (e) => {
+        // ==========================================
+        // 表單送出 (Step 1 -> Step 2)
+        infoForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // 1. 欄位驗證
             const name = document.getElementById('inputName').value.trim();
             const idRaw = inputID.value.trim();
             const id = isOverseasCheckbox.checked ? idRaw : idRaw.toUpperCase();
@@ -279,26 +276,41 @@
             if (!/^09\d{8}$/.test(phone.replace(/-/g,''))) { document.getElementById('phoneError').classList.remove('hidden'); return; }
             document.getElementById('phoneError').classList.add('hidden');
 
+            // 2. 如果還沒抓到合約，現在開始抓 (修正卡住的關鍵邏輯)
             if(!rawContractHTML) {
-                Swal.fire({ icon: 'info', title: '載入中', text: '正在讀取最新合約條款...', timer: 2000 });
-                fetchContractContent();
-                return;
+                // 顯示模糊提示
+                Swal.fire({
+                    title: '資料準備中',
+                    text: '系統處理中，請稍候...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                try {
+                    // 等待抓取完成
+                    await fetchContractContent();
+                    Swal.close(); // 抓完關閉 Loading
+                } catch (error) {
+                    Swal.fire({icon: 'error', title: '連線錯誤', text: '無法讀取合約內容，請檢查網路或重新整理。'});
+                    return; // 終止程式，不跳頁
+                }
             }
 
-            // 前端即時替換預覽 (這樣使用者能看到自己的名字在合約上)
+            // 3. 渲染合約內容 (前端替換)
             let preview = rawContractHTML;
-            // 根據後端變數規則替換
+            // 使用正則表達式全域替換
             preview = preview.replace(/{{Name}}/g, `<span class="user-data-highlight">${name}</span>`);
             preview = preview.replace(/{{ID}}/g, `<span class="user-data-highlight">${id}</span>`);
             preview = preview.replace(/{{Phone}}/g, `<span class="user-data-highlight">${phone}</span>`);
             preview = preview.replace(/{{Email}}/g, `<span class="user-data-highlight">${email}</span>`);
             preview = preview.replace(/{{Address}}/g, `<span class="user-data-highlight">${address}</span>`);
             
-            // 移除不需要顯示的 Signature 標記
+            // 移除 Doc 裡的簽名標記，前端這邊不需要顯示
             preview = preview.replace(/{{Signature}}/g, "");
 
             document.getElementById('contractPreview').innerHTML = preview;
 
+            // 4. 切換頁面
             step1.classList.add('hidden-step');
             step2.classList.remove('hidden-step');
             step2.classList.add('fade-in');
@@ -306,7 +318,8 @@
             window.scrollTo(0,0);
         });
 
-        // 3. 最終送出
+        // ==========================================
+        // 最終簽署送出
         document.getElementById('finalSubmitBtn').addEventListener('click', async () => {
             if (signaturePad.isEmpty()) { Swal.fire({icon:'warning', title:'尚未簽名', confirmButtonColor:'#166534'}); return; }
 
@@ -343,7 +356,8 @@
             }
         });
 
-        // 輔助功能
+        // ==========================================
+        // 輔助函式
         backBtn.addEventListener('click', () => { step2.classList.add('hidden-step'); step1.classList.remove('hidden-step'); step1.classList.add('fade-in'); });
         document.getElementById('clearBtn').addEventListener('click', () => signaturePad.clear());
         

@@ -320,8 +320,8 @@
                         // 條款：綠色側邊框
                         styledHtml += `<h3 class="text-base font-bold text-gray-900 mt-6 mb-2 border-l-4 border-green-700 pl-3 bg-green-50 py-1">${trimLine}</h3>`;
                     } else if (trimLine.startsWith('甲方') || trimLine.startsWith('乙方') || trimLine.includes('立書人')) {
-                        // 甲乙方：加粗大字
-                        styledHtml += `<h4 class="text-xl font-bold text-gray-800 mt-6 mb-2">${trimLine}</h4>`;
+                        // 🟢 【修改處】字體改為 text-base (標準大小)，保留粗體與黑色
+                        styledHtml += `<div class="text-base font-bold text-gray-900 mt-6 mb-2 tracking-wide">${trimLine}</div>`;
                     } else {
                         // 其他所有內容 (包含 1.1, 1.2...) 全部維持內文
                         styledHtml += `<p class="mb-2 leading-relaxed text-gray-700 text-justify">${trimLine}</p>`;

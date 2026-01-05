@@ -318,7 +318,7 @@
                         styledHtml += '<br>'; 
                     } else if (trimLine.startsWith('第') && trimLine.includes('條')) {
                         // 條款：綠色側邊框
-                        styledHtml += `<h3 class="text-lg font-bold text-gray-900 mt-6 mb-2 border-l-4 border-green-700 pl-3 bg-green-50 py-1">${trimLine}</h3>`;
+                        styledHtml += `<h3 class="text-base font-bold text-gray-900 mt-6 mb-2 border-l-4 border-green-700 pl-3 bg-green-50 py-1">${trimLine}</h3>`;
                     } else if (trimLine.startsWith('甲方') || trimLine.startsWith('乙方') || trimLine.includes('立書人')) {
                         // 甲乙方：加粗大字
                         styledHtml += `<h4 class="text-xl font-bold text-gray-800 mt-6 mb-2">${trimLine}</h4>`;
